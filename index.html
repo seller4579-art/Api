@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV to SQL Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>CSV to SQL Converter</h2>
+
+    <input type="file" id="csvFile" accept=".csv">
+    <br>
+    <button onclick="convertCSV()">Convert</button>
+
+    <textarea id="output" placeholder="SQL output..."></textarea>
+
+    <script>
+        function convertCSV() {
+            const file = document.getElementById('csvFile').files[0];
+
+            if (!file) {
+                alert('Select a CSV file first.');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const csv = e.target.result.trim();
+                const lines = csv.split('\n');
+
+                const headers = lines[0].split(',');
+
+                let sql = '';
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+
+                    const escapedValues = values.map(v =>
+                        `'${v.trim().replace(/'/g, "''")}'`
+                    );
+
+                    sql += `INSERT INTO contacts (${headers.join(', ')}) VALUES (${escapedValues.join(', ')});\n`;
+                }
+
+                document.getElementById('output').value = sql;
+            };
+
+            reader.readAsText(file);
+        }
+    </script>
+
+</body>
+</html>
