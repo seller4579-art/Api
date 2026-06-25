@@ -1,71 +1,186 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
-    <title>CSV to SQL Converter</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV to SQL Converter</title><style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-        textarea {
-            width: 100%;
-            height: 250px;
-            margin-top: 10px;
-        }
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#0f172a,#1e293b,#111827);
+    font-family:Segoe UI,sans-serif;
+    padding:20px;
+}
 
-        button {
-            padding: 10px 20px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
+.container{
+    width:100%;
+    max-width:900px;
+    background:rgba(255,255,255,.05);
+    backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 0 30px rgba(0,0,0,.4);
+}
 
-    <h2>CSV to SQL Converter</h2>
+h1{
+    text-align:center;
+    color:white;
+    margin-bottom:20px;
+}
 
-    <input type="file" id="csvFile" accept=".csv">
-    <br>
-    <button onclick="convertCSV()">Convert</button>
+.upload-box{
+    text-align:center;
+    margin-bottom:20px;
+}
 
-    <textarea id="output" placeholder="SQL output..."></textarea>
+input[type=file]{
+    color:white;
+    margin-bottom:15px;
+}
 
-    <script>
-        function convertCSV() {
-            const file = document.getElementById('csvFile').files[0];
+.btn-group{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+}
 
-            if (!file) {
-                alert('Select a CSV file first.');
-                return;
-            }
+button{
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:15px;
+    cursor:pointer;
+    transition:.3s;
+    color:white;
+}
 
-            const reader = new FileReader();
+.convert{
+    background:linear-gradient(45deg,#06b6d4,#3b82f6);
+}
 
-            reader.onload = function(e) {
-                const csv = e.target.result.trim();
-                const lines = csv.split('\n');
+.copy{
+    background:linear-gradient(45deg,#22c55e,#16a34a);
+}
 
-                const headers = lines[0].split(',');
+.download{
+    background:linear-gradient(45deg,#f97316,#ea580c);
+}
 
-                let sql = '';
+button:hover{
+    transform:translateY(-2px);
+}
 
-                for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i].split(',');
+textarea{
+    width:100%;
+    height:350px;
+    margin-top:20px;
+    border:none;
+    outline:none;
+    resize:none;
+    border-radius:15px;
+    padding:15px;
+    background:#0f172a;
+    color:#00ff88;
+    font-family:Consolas,monospace;
+    font-size:14px;
+}
 
-                    const escapedValues = values.map(v =>
-                        `'${v.trim().replace(/'/g, "''")}'`
-                    );
+.footer{
+    text-align:center;
+    color:#94a3b8;
+    margin-top:15px;
+    font-size:13px;
+}
+</style></head><body><div class="container"><h1>CSV → SQL Converter</h1><div class="upload-box"><input type="file" id="csvFile" accept=".csv"><div class="btn-group">
+<button class="convert" onclick="convertCSV()">Generate SQL</button>
+<button class="copy" onclick="copySQL()">Copy SQL</button>
+<button class="download" onclick="downloadSQL()">Download SQL</button>
+</div></div><textarea id="output" placeholder="Generated SQL will appear here..."></textarea><div class="footer">
+CSV Upload • SQL Generator • Download .sql
+</div></div><script>
 
-                    sql += `INSERT INTO contacts (${headers.join(', ')}) VALUES (${escapedValues.join(', ')});\n`;
-                }
+function convertCSV(){
 
-                document.getElementById('output').value = sql;
-            };
+const file=document.getElementById('csvFile').files[0];
 
-            reader.readAsText(file);
-        }
-    </script>
+if(!file){
+    alert("Please select a CSV file.");
+    return;
+}
 
-</body>
+const reader=new FileReader();
+
+reader.onload=function(e){
+
+const csv=e.target.result.trim();
+const lines=csv.split(/\r?\n/);
+
+const headers=lines[0].split(',');
+
+let sql='';
+
+for(let i=1;i<lines.length;i++){
+
+    const values=lines[i].split(',');
+
+    const escaped=values.map(v=>
+        `'${v.trim().replace(/'/g,"''")}'`
+    );
+
+    sql += `INSERT INTO contacts (${headers.join(', ')}) VALUES (${escaped.join(', ')});\n`;
+}
+
+document.getElementById("output").value=sql;
+
+};
+
+reader.readAsText(file);
+
+}
+
+function copySQL(){
+
+const output=document.getElementById("output");
+
+output.select();
+document.execCommand("copy");
+
+alert("SQL copied successfully!");
+
+}
+
+function downloadSQL(){
+
+const sql=document.getElementById("output").value;
+
+if(!sql){
+    alert("Generate SQL first.");
+    return;
+}
+
+const blob=new Blob([sql],{
+    type:"text/sql"
+});
+
+const a=document.createElement("a");
+
+a.href=URL.createObjectURL(blob);
+a.download="output.sql";
+
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+
+}
+
+</script></body>
 </html>
